@@ -20,21 +20,19 @@ class GitHubFormat(ParsableFormat):
     super().__init__(name)
     self.order = {}
     """cache sort order of lines; SourceVisitor maintains an internal list of outputs from
-    format_output_line; these are later dedulicated in a set, then passed to sort_output_lines;
+    format_output_line; these are later deduplicated in a set, then passed to sort_output_lines;
     so caching their order uses minimal extra memory and avoids a fragile parse of the already
     serialized data to extract its sort order
     """
     self.cwd = os.getcwd()
     """current working directory, to relativize paths"""
 
-  def format_output_line(self, msg, path=None, line=None, col=None, versions=None, plural=None):
+  def format_output_line(self, msg, path=None, line=None, col=None,
+                         versions=None, plural=None, violation=False):
     # default title is for generic analysis errors/notices
     title = "Python version requirement analysis"
-    level = "error"
-    if versions is None:
-      # missing versions indicates verbosity 4+
-      level = "notice"
-    else:
+    level = "error" if violation else "notice"
+    if versions is not None:
       versions = version_strings(versions)
       title = "Requires Python {}".format(versions)
     if msg is None:
